@@ -114,7 +114,7 @@
     
     // Define a custom icon
     let customIcon = L.icon({
-        iconUrl: '../resources/icons8-beer-100.png', // Path to your custom icon image
+        iconUrl: 'https://github.com/Arwalden4/Project3-Group-3/blob/main/static/resources/icons8-beer-100.png', // Path to your custom icon image
         iconSize: [32, 32], // Size of the icon [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
