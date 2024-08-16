@@ -4,7 +4,8 @@
 
     // Create the tile layers for the streetmap and topographical map backgrounds of our map.
     let mapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        opacity: 0.2
         });
     
         // Create a baseMaps object to hold the map layers.
@@ -12,38 +13,42 @@
         "Street Map": mapLayer
         };
     
-    //---------------------------------------------------------------------------------------------------------
-    // Chicago boundaries layer
-    //---------------------------------------------------------------------------------------------------------
-        // Chicago Data Portal for Chicago Neighborhood Boundaries:
-    let urlChicago = "https://data.cityofchicago.org/resource/y6yq-dbs2.json";
-    
-        // Function to transpose original coordinates from [lng, lat] to [lat, lng]
-    function transposeCoordinates(coords) {
-        return coords.map(coord => [coord[1], coord[0]]);
-        };
-    
-        // Set empty layerGroup for community area boundaries
-    let mapOutput = L.layerGroup();
-    
-        // Fetch Chicago data
-    d3.json(urlChicago).then(function(data) {
-    
-        // Step to ensure data has been retrieved
-        if (data && data.length > 0) {
-    
-            // Set empty list to store all polygonal coordinates for mapping Chicago community areas
-            let oneOf77 = [];
-            
-            // Loop through all community area data
-            for (let i = 0; i < data.length; i++) {
-                let area = data[i];
-                let coordinates = area.the_geom.coordinates[0][0];
-                let transposedCoords = transposeCoordinates(coordinates);
-                let pri_neigh = area.pri_neigh;
-    
-                // Function to set primary neighborhood (pri_neigh) as defined by boundaries dataset to 
-                //     match community areas in financial dataset to facilitate pairing of data
+//---------------------------------------------------------------------------------------------------------
+// Chicago boundaries layer
+//---------------------------------------------------------------------------------------------------------
+let urlChicago = "https://data.cityofchicago.org/resource/y6yq-dbs2.json";
+let urlIncomeData = "static/resources/Census_Data_-_Selected_socioeconomic_indicators_in_Chicago__2008___2012_20240812.json";
+
+function transposeCoordinates(coords) {
+    return coords.map(coord => [coord[1], coord[0]]);
+}
+
+let mapOutput = L.layerGroup();
+let incomeData = {}; 
+
+// Fetch Chicago boundaries data
+d3.json(urlChicago).then(function(data) {
+    if (data && data.length > 0) {
+        // Fetch income data
+        d3.json(urlIncomeData).then(function(income) {
+            if (income && income.length > 0) {
+                // Create a dictionary for quick lookup by neighborhood name
+                income.forEach(item => {
+                    let neighborhood = item['COMMUNITY AREA NAME']; // Ensure this matches your JSON structure
+                    let incomeValue = item['PER CAPITA INCOME']; // Ensure this matches your JSON structure
+                    incomeData[neighborhood] = incomeValue;
+                });
+                
+                    // Function to determine color based on income
+                    function getColorForIncome(income) {
+                        // Define the color scale
+                        const colorScale = d3.scaleLinear()
+                            .domain([15000, 90000]) // Income range from 15,000 to 90,000
+                            .range(["#ADD8E6", "#00008B"]); // Color range from red to dark green
+                        // Return the color corresponding to the income
+                        return colorScale(income);}
+                
+                // Function to set primary neighborhood (pri_neigh) as defined by boundaries dataset
                 function setCommunityArea(pri_neigh) {
                     return pri_neigh == "Andersonville"         ? "Edgewater":
                            pri_neigh == "Boystown"              ? "Lake View":
@@ -52,23 +57,23 @@
                            pri_neigh == "East Village"          ? "West Town":
                            pri_neigh == "Galewood"              ? "Austin":
                            pri_neigh == "Gold Coast"            ? "Near North Side":
-                           pri_neigh == "Grand Crossing"        ? "Greater Grand Crossing": //to accommodate typographical/name variation
+                           pri_neigh == "Grand Crossing"        ? "Greater Grand Crossing":
                            pri_neigh == "Grant Park"            ? "Loop":
                            pri_neigh == "Greektown"             ? "Near West Side":
-                           pri_neigh == "Humboldt Park"         ? "Humboldt park": //to accommodate typographical/name variation
+                           pri_neigh == "Humboldt Park"         ? "Humboldt park":
                            pri_neigh == "Jackson Park"          ? "Woodlawn":
                            pri_neigh == "Little Italy, UIC"     ? "Near West Side":
                            pri_neigh == "Little Village"        ? "South Lawndale":
                            pri_neigh == "Magnificent Mile"      ? "Near North Side":
-                           pri_neigh == "Mckinley Park"         ? "McKinley Park": //to accommodate typographical/name variation
+                           pri_neigh == "Mckinley Park"         ? "McKinley Park":
                            pri_neigh == "Millenium Park"        ? "Loop":
-                           pri_neigh == "Montclare"             ? "Montclaire": //to accommodate typographical/name variation
+                           pri_neigh == "Montclare"             ? "Montclaire":
                            pri_neigh == "Museum Campus"         ? "Near South Side":
                            pri_neigh == "Old Town"              ? "Near North Side":
                            pri_neigh == "Printers Row"          ? "Loop":
                            pri_neigh == "River North"           ? "Near North Side":
                            pri_neigh == "Rush & Division"       ? "Near North Side":
-                           pri_neigh == "Sauganash,Forest Glen" ? "Forest Glen": //to accommodate typographical/name variation
+                           pri_neigh == "Sauganash,Forest Glen" ? "Forest Glen":
                            pri_neigh == "Sheffield & DePaul"    ? "Lincoln Park":
                            pri_neigh == "Streeterville"         ? "Near North Side":
                            pri_neigh == "Ukrainian Village"     ? "West Town":
@@ -77,26 +82,44 @@
                            pri_neigh == "Wicker Park"           ? "West Town":
                            pri_neigh == "Wrigleyville"          ? "Lake View":
                            pri_neigh;
+                };
+
+                // Loop through all community area data
+                let oneOf77 = [];
+                for (let i = 0; i < data.length; i++) {
+                    let area = data[i];
+                    let coordinates = area.the_geom.coordinates[0][0];
+                    let transposedCoords = transposeCoordinates(coordinates);
+                    let pri_neigh = area.pri_neigh;
+                    let neighborhoodName = setCommunityArea(pri_neigh);
+                    let income = incomeData[neighborhoodName] || 0; // Default to 0 if income is not found
+                    
+                    let polygon = L.polygon(
+                        transposedCoords,
+                        {
+                            color: "black", // Outline color
+                            weight: 1.0,
+                            fillColor: getColorForIncome(income), // Fill color based on income
+                            fillOpacity: 0.7
+                        }
+                    ).bindPopup(`Neighborhood: <h3>${neighborhoodName}</h3><p>Income: $${income.toLocaleString()}</p>`);
+                    
+                    oneOf77.push(polygon);
                 }
-    
-                let polygon = L.polygon(
-                    transposedCoords,
-                    {color: "blue",
-                     weight: 0.5,
-                     fillOpacity: 0.20
-                    }
-                ).bindPopup("Neighborhood: <h3>" + setCommunityArea(pri_neigh) + "</h3>");
-    
-                oneOf77.push(polygon);
+                
+                mapOutput.addLayer(L.layerGroup(oneOf77));
+            } else {
+                console.error("Income data is not in the expected format or is empty.");
             }
-    
-            mapOutput.addLayer(L.layerGroup(oneOf77));
-        } else {
-            console.error("Data is not in the expected format or is empty.");
-        }
-    }).catch(function(error) {
-        console.error("Failed to load Chicago data:", error);
-    });
+        }).catch(function(error) {
+            console.error("Failed to load income data:", error);
+        });
+    } else {
+        console.error("Chicago boundary data is not in the expected format or is empty.");
+    }
+}).catch(function(error) {
+    console.error("Failed to load Chicago data:", error);
+});
     
     //---------------------------------------------------------------------------------------------------------
     // Chicago liquor store markers layer
@@ -115,7 +138,7 @@
     // Define a custom icon
     let customIcon = L.icon({
         iconUrl: 'static/resources/icons8-beer-100.png', // Path to your custom icon image
-        iconSize: [32, 32], // Size of the icon [width, height]
+        iconSize: [24, 24], // Size of the icon [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
         // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
@@ -183,7 +206,7 @@
     // 
     let groceryIcon = L.icon({
         iconUrl: 'static/resources/icons8-whole-apple-48.png',
-        iconSize: [25, 28], // Size of the icon [width, height]
+        iconSize: [21, 21], // Size of the icon [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
         // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
