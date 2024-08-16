@@ -164,11 +164,82 @@
     }).catch(function(error) {
         console.error("Failed to load Chicago data:", error);
     });
+   
+    
+  //---------------------------------------------------------------------------------------------------------
+    // Establish overlayMaps object/layers for Grocery Stores
+    //---------------------------------------------------------------------------------------------------------
+    
+
+// Chicago Data Portal for Grocery store locations:
+
+    
+      // API url
+    let urlGrocery  = "https://data.cityofchicago.org/resource/3e26-zek2.json";
+    
+        // Set empty layerGroup for grocery store markers
+    let groceryStores = L.layerGroup();
+    
+    // 
+    let groceryIcon = L.icon({
+        iconUrl: 'static/resources/icons8-whole-apple-48.png',
+        iconSize: [25, 28], // Size of the icon [width, height]
+        iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
+        popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
+        // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
+        // shadowSize: [41, 41] // Size of the shadow
+     });
+    
+        // Fetch  data
+    d3.json(urlGrocery).then(function(groceries) {
+    
+        // ensure data has been retrieved
+        if (groceries && groceries.length > 0) {
+            console.log(groceries.length);
+    
+            let uniqueGroceries = groceries.filter(
+                (obj, index) =>
+                    groceries.findIndex((item) => item.address === obj.address) === index);
+            console.log(uniqueGroceries);
+    
+            // Set empty list to store all grocery store location markers
+            let groceryMarkers = [];
             
+            // Loop through all grocery store data
+            for (let i = 0; i < uniqueGroceries.length; i++) {
+                let grocery = uniqueGroceries[i];
+                
+                let latitude  = grocery.location?.coordinates[1];
+                let longitude = grocery.location?.coordinates[0];
+    
+                if (latitude !== undefined && longitude !== undefined) {
+                    let coordinates = [latitude, longitude];
+                
+    
+                 let groceryMarker = L.marker(coordinates, {icon:groceryIcon})
+                        .bindPopup("Name: <h3>" + grocery.store_name + "</h3><br>" + grocery.address);
+    
+                    groceryMarkers.push(groceryMarker);
+            } else {
+                console.error("Missing coordinates for store:", grocery);
+            }
+        }
+            // Add markers to grocery store layer group
+            groceryStores.addLayer(L.layerGroup(groceryMarkers));
+        } else {
+            console.error("Data is not in the expected format or is empty.");
+        }
+    }).catch(function(error) {
+        console.error("Failed to load Chicago data:", error);
+    });
+
+
+    
     //---------------------------------------------------------------------------------------------------------
     // Establish overlayMaps object/layers
     //---------------------------------------------------------------------------------------------------------
     
+
         // Initialize the map
     let myMap = L.map("map", {
         center: [41.831832, -87.623177], // Coordinates for Chicago
@@ -179,7 +250,8 @@
         // Create an overlayMaps object to hold the neighborhoods layer.
         let overlayMaps = {
             "Neighborhoods": mapOutput,
-            "Liquor Stores": liquorStores
+            "Liquor Stores": liquorStores,
+            "Grocery Stores": groceryStores,
         };
     
         // Add control layers to the map
@@ -188,6 +260,10 @@
         // Add mapOutput layer group to the map after data is loaded
     mapOutput.addTo(myMap);
     liquorStores.addTo(myMap);
+    groceryStores.addTo(myMap);
+
+
+
     
     
     
