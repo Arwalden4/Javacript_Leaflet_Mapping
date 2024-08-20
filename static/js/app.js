@@ -259,13 +259,13 @@ d3.json(urlChicago).then(function(data) {
 
     
     //---------------------------------------------------------------------------------------------------------
-    // Establish overlayMaps object/layers
+    // Establish overlayMaps object/layers, legend
     //---------------------------------------------------------------------------------------------------------
     
 
         // Initialize the map
     let myMap = L.map("map", {
-        center: [41.831832, -87.623177], // Coordinates for Chicago
+        center: [41.801832, -87.723177], // Coordinates for Chicago
         zoom: 11.0,
         layers: [mapLayer] // Start with only the base layer
     });
@@ -286,7 +286,43 @@ d3.json(urlChicago).then(function(data) {
     groceryStores.addTo(myMap);
 
 
+    // Function to determine color based on income
+    const colorScale = d3.scaleLinear()
+      .domain([15000, 90000]) // Income range from 15,000 to 90,000
+      .range(["#ADD8E6", "#00008B"]); // Color range from light blue to dark blue
 
+        // Create the color legend control
+        L.Control.ColorLegend = L.Control.extend({
+            onAdd: function () {
+                var div = L.DomUtil.create('div', 'legend');
+                var grades = [15000, 30000, 45000, 60000, 75000, 90000];
+                var labels = [];
+
+                // Create a color gradient using D3
+                var colorBar = '<div style="background: linear-gradient(to right, ' +
+                    grades.map(d => colorScale(d)).join(', ') +
+                    '); height: 20px;"></div>';
+
+                labels.push(colorBar);
+
+                // Add labels
+                grades.forEach((grade, i) => {
+                    labels.push(
+                        '<i style="background:' + colorScale(grade) + '"></i> ' +
+                        (i === grades.length - 1 ? 'Above ' + grade : (i > 0 ? (grades[i - 1] + ' - ' + grade) : '< ' + grade))
+                    );
+                });
+
+                div.innerHTML = '<div>' + labels.join('<br>') + '</div>';
+                return div;
+            }
+        });
+
+        // Add the legend to the map
+        L.control.colorLegend = function (opts) {
+            return new L.Control.ColorLegend(opts);
+        };
+        L.control.colorLegend({ position: 'bottomright' }).addTo(myMap);
     
     
     
