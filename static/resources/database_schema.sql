@@ -49,32 +49,12 @@ CREATE TABLE liquor (
     status VARCHAR(3),
     lat FLOAT,
     lon FLOAT,
-    location VARCHAR(40),
+    location VARCHAR(40)
     PRIMARY KEY (acc_no)
 )
 ALTER TABLE liquor
 ADD COLUMN store_id INT NOT NULL PRIMARY KEY;
 
-CREATE TABLE fast_food (
-    bus_name VARCHAR(40),
-    aka_name VARCHAR(40),
-    lic_no FLOAT NOT NULL,
-    fac_type VARCHAR(10) NOT NULL,
-    risk VARCHAR(15),
-    address VARCHAR(30),
-    city Varchar(7),
-    state Varchar(2),
-    zip Varchar(5),
-    insp_date Varchar(10),
-    insp_type Varchar(20),
-    insp_result Varchar(20),
-    lat Varchar(30),
-    lon Varchar(30),
-    location Varchar(40)
-)
-ALTER table fast_food add column rest_id INT NOT NULL PRIMARY KEY;
-
 SELECT * FROM census;
 SELECT * FROM groceries;
 SELECT * FROM liquor;
-Select * from fast_food;

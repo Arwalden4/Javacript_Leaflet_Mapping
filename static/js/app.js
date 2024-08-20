@@ -256,8 +256,6 @@ d3.json(urlChicago).then(function(data) {
         console.error("Failed to load Chicago data:", error);
     });
 
-
-    
     //---------------------------------------------------------------------------------------------------------
     // Establish overlayMaps object/layers, legend
     //---------------------------------------------------------------------------------------------------------
@@ -265,16 +263,25 @@ d3.json(urlChicago).then(function(data) {
 
         // Initialize the map
     let myMap = L.map("map", {
-        center: [41.801832, -87.723177], // Coordinates for Chicago
+        center: [41.821832, -87.723177], // Coordinates for Chicago
         zoom: 11.0,
         layers: [mapLayer] // Start with only the base layer
     });
     
+        //Add scale
+    L.control.scale({
+            
+        position: 'bottomleft',
+        maxWidth: 200,        // Maximum width of the scale control
+        metric: false,         // Show metric units
+        imperial: true       // Hide imperial units
+    }).addTo(myMap);
+
         // Create an overlayMaps object to hold the neighborhoods layer.
         let overlayMaps = {
-            "Neighborhoods": mapOutput,
+            "Comm. Area": mapOutput,
             "Liquor Stores": liquorStores,
-            "Grocery Stores": groceryStores,
+            "Grocery Stores": groceryStores
         };
     
         // Add control layers to the map
@@ -284,7 +291,6 @@ d3.json(urlChicago).then(function(data) {
     mapOutput.addTo(myMap);
     liquorStores.addTo(myMap);
     groceryStores.addTo(myMap);
-
 
     // Function to determine color based on income
     const colorScale = d3.scaleLinear()
@@ -296,14 +302,14 @@ d3.json(urlChicago).then(function(data) {
             onAdd: function () {
                 var div = L.DomUtil.create('div', 'legend');
                 var grades = [15000, 30000, 45000, 60000, 75000, 90000];
-                var labels = [];
+                var labels = ['<strong><u>Income per capita</u></strong>'];
 
                 // Create a color gradient using D3
-                var colorBar = '<div style="background: linear-gradient(to right, ' +
-                    grades.map(d => colorScale(d)).join(', ') +
-                    '); height: 20px;"></div>';
+                // var colorBar = '<div style="background: linear-gradient(to right, ' +
+                //     grades.map(d => colorScale(d)).join(', ') +
+                //     '); height: 20px;"></div>';
 
-                labels.push(colorBar);
+                // labels.push(colorBar);
 
                 // Add labels
                 grades.forEach((grade, i) => {
@@ -324,5 +330,5 @@ d3.json(urlChicago).then(function(data) {
         };
         L.control.colorLegend({ position: 'bottomright' }).addTo(myMap);
     
-    
+
     
