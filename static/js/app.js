@@ -105,7 +105,7 @@ d3.json(urlChicago).then(function(data) {
                             fillColor: getColorForIncome(income), // Fill color based on income
                             fillOpacity: 0.7
                         }
-                    ).bindPopup(`Neighborhood: <h3>${neighborhoodName}</h3><p>Income: $${income.toLocaleString()}</p>`);
+                    ).bindPopup(`Community Area: <h3>${neighborhoodName}</h3><p>Income: $${income.toLocaleString()}</p>`);
                     
                     oneOf77.push(polygon);
                 }
