@@ -205,8 +205,8 @@ d3.json(urlChicago).then(function(data) {
     
     // 
     let groceryIcon = L.icon({
-        iconUrl: 'static/resources/icons8-shopping-cart-64.png',
-        iconSize: [21, 23], // Size of the icon [width, height]
+        iconUrl: 'static/resources/icons8-shopping-cart-60.png',
+        iconSize: [21, 18], // Size of the icon [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
         // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
