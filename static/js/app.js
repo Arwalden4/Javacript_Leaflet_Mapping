@@ -170,7 +170,7 @@ d3.json(urlChicago).then(function(data) {
                     let coordinates = [latitude, longitude];
     
                 let storeMarker = L.marker(coordinates, {icon:customIcon})
-                    .bindPopup("Name: <h3>" + store.doing_business_as_name + "</h3><br>" + store.address);
+                    .bindPopup("Liquor store: <h3>" + store.doing_business_as_name + "</h3>" + store.address);
     
                 storeMarkers.push(storeMarker);
             } else {
@@ -232,7 +232,7 @@ d3.json(urlChicago).then(function(data) {
                 
     
                  let groceryMarker = L.marker(coordinates, {icon:groceryIcon})
-                        .bindPopup("Name: <h3>" + grocery.store_name + "</h3>" + grocery.address);
+                        .bindPopup("Grocery: <h3>" + grocery.store_name + "</h3>" + grocery.address);
     
                     groceryMarkers.push(groceryMarker);
             } else {
