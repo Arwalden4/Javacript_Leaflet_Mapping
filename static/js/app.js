@@ -2,7 +2,7 @@
 // Establish base map layer
 //---------------------------------------------------------------------------------------------------------
 
-    // Create the tile layers for the streetmap and topographical map backgrounds of our map.
+    // Create the tile layers for the street map background
     let mapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         opacity: 0.2
@@ -14,15 +14,17 @@
         };
     
 //---------------------------------------------------------------------------------------------------------
-// Chicago boundaries layer
+// Chicago boundaries layer, including income shading
 //---------------------------------------------------------------------------------------------------------
 let urlChicago = "https://data.cityofchicago.org/resource/y6yq-dbs2.json";
 let urlIncomeData = "static/resources/Census_Data_-_Selected_socioeconomic_indicators_in_Chicago__2008___2012_20240812.json";
 
+  //Function to transpose mapping coordinates from [lng, lat] to [lat, lng]
 function transposeCoordinates(coords) {
     return coords.map(coord => [coord[1], coord[0]]);
 }
 
+  //Initiate empty sets to collect data
 let mapOutput = L.layerGroup();
 let incomeData = {}; 
 
@@ -48,7 +50,8 @@ d3.json(urlChicago).then(function(data) {
                         // Return the color corresponding to the income
                         return colorScale(income);}
                 
-                // Function to set primary neighborhood (pri_neigh) as defined by boundaries dataset
+                // Function to set primary neighborhood (pri_neigh) as defined by boundaries dataset, 
+                //     adjusting for naming differences where needed
                 function setCommunityArea(pri_neigh) {
                     return pri_neigh == "Andersonville"         ? "Edgewater":
                            pri_neigh == "Boystown"              ? "Lake View":
@@ -84,7 +87,7 @@ d3.json(urlChicago).then(function(data) {
                            pri_neigh;
                 };
 
-                // Loop through all community area data
+                // Loop through all community area data and create community area boundaries
                 let oneOf77 = [];
                 for (let i = 0; i < data.length; i++) {
                     let area = data[i];
@@ -92,7 +95,7 @@ d3.json(urlChicago).then(function(data) {
                     let transposedCoords = transposeCoordinates(coordinates);
                     let pri_neigh = area.pri_neigh;
                     let neighborhoodName = setCommunityArea(pri_neigh);
-                    let income = incomeData[neighborhoodName] || 0; // Default to 0 if income is not found
+                    let income = incomeData[neighborhoodName] || 0; // Default to 0 if income not found
                     
                     let polygon = L.polygon(
                         transposedCoords,
@@ -124,26 +127,22 @@ d3.json(urlChicago).then(function(data) {
     //---------------------------------------------------------------------------------------------------------
     // Chicago liquor store markers layer
     //---------------------------------------------------------------------------------------------------------
-        
-    
-    // Chicago Data Portal for liquor store locations:
-      // Set filter for liquor stores with unexpired licenses (needed to limit data pull to under 1000 records due to query size limitations)
+        // Chicago Data Portal for liquor store locations set up:
+        // Set date filter for liquor stores with unexpired licenses (needed to limit data pull to under 1000 records due to query size limitations)
     let expiry = new Date().toISOString().split('T')[0]; // output of 'expiry' to output yyyy-mm-dd
-      // Concatenation of filtered API url
+        // Concatenation of filtered API url
     let urlChicagoLiquor = "https://data.cityofchicago.org/resource/ievs-xw5b.json?$where=expiration_date>%27"+expiry+"%27";
     
         // Set empty layerGroup for liquor store markers
     let liquorStores = L.layerGroup();
     
-    // Define a custom icon
+        // Define a custom icon
     let customIcon = L.icon({
-        iconUrl: 'static/resources/icons8-beer-100.png', // Path to your custom icon image
-        iconSize: [24, 24], // Size of the icon [width, height]
+        iconUrl: 'static/resources/icons8-beer-100.png', // local path to icon image, source: https://icons8.com/icons/set/leaflet
+        iconSize: [24, 24], // size by [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
-        // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
-        shadowSize: [41, 41] // Size of the shadow
-    });
+        });
     
         // Fetch Chicago data
     d3.json(urlChicagoLiquor).then(function(stores) {
@@ -160,7 +159,7 @@ d3.json(urlChicago).then(function(data) {
             // Set empty list to store all liquor store location markers
             let storeMarkers = [];
             
-            // Loop through all liquor store data
+            // Loop through all liquor store data and create markers
             for (let i = 0; i < uniqueStores.length; i++) {
                 let store = uniqueStores[i];
                 
@@ -169,7 +168,6 @@ d3.json(urlChicago).then(function(data) {
     
                 if (latitude !== undefined && longitude !== undefined) {
                     let coordinates = [latitude, longitude];
-                
     
                 let storeMarker = L.marker(coordinates, {icon:customIcon})
                     .bindPopup("Name: <h3>" + store.doing_business_as_name + "</h3><br>" + store.address);
@@ -187,31 +185,25 @@ d3.json(urlChicago).then(function(data) {
     }).catch(function(error) {
         console.error("Failed to load Chicago data:", error);
     });
-   
     
   //---------------------------------------------------------------------------------------------------------
-    // Establish overlayMaps object/layers for Grocery Stores
-    //---------------------------------------------------------------------------------------------------------
+  // Establish overlayMaps object/layers for Grocery Stores
+  //---------------------------------------------------------------------------------------------------------
     
 
-// Chicago Data Portal for Grocery store locations:
-
-    
+      // Chicago Data Portal for Grocery store locations:
       // API url
     let urlGrocery  = "https://data.cityofchicago.org/resource/3e26-zek2.json";
     
         // Set empty layerGroup for grocery store markers
     let groceryStores = L.layerGroup();
-    
-    // 
+        // 
     let groceryIcon = L.icon({
         iconUrl: 'static/resources/icons8-shopping-cart-60.png',
-        iconSize: [21, 18], // Size of the icon [width, height]
+        iconSize: [21, 18], // Size by [width, height]
         iconAnchor: [16, 32], // Point of the icon which will correspond to marker's location
         popupAnchor: [0, -32], // Point from which the popup should open relative to the iconAnchor
-        // shadowUrl: 'images/icon-shadow.png', // Path to your shadow image (optional)
-        // shadowSize: [41, 41] // Size of the shadow
-     });
+        });
     
         // Fetch  data
     d3.json(urlGrocery).then(function(groceries) {
@@ -228,7 +220,7 @@ d3.json(urlChicago).then(function(data) {
             // Set empty list to store all grocery store location markers
             let groceryMarkers = [];
             
-            // Loop through all grocery store data
+            // Loop through all grocery store data and create markers
             for (let i = 0; i < uniqueGroceries.length; i++) {
                 let grocery = uniqueGroceries[i];
                 
@@ -240,7 +232,7 @@ d3.json(urlChicago).then(function(data) {
                 
     
                  let groceryMarker = L.marker(coordinates, {icon:groceryIcon})
-                        .bindPopup("Name: <h3>" + grocery.store_name + "</h3><br>" + grocery.address);
+                        .bindPopup("Name: <h3>" + grocery.store_name + "</h3>" + grocery.address);
     
                     groceryMarkers.push(groceryMarker);
             } else {
@@ -260,34 +252,32 @@ d3.json(urlChicago).then(function(data) {
     // Establish overlayMaps object/layers, legend
     //---------------------------------------------------------------------------------------------------------
     
-
         // Initialize the map
     let myMap = L.map("map", {
-        center: [41.821832, -87.723177], // Coordinates for Chicago
+        center: [41.821832, -87.723177], // Coordinates to center Chicago in browser
         zoom: 11.0,
-        layers: [mapLayer] // Start with only the base layer
+        layers: [mapLayer]
     });
     
-        //Add scale
+        //Add distance scale
     L.control.scale({
-            
         position: 'bottomleft',
-        maxWidth: 200,        // Maximum width of the scale control
-        metric: false,         // Show metric units
-        imperial: true       // Hide imperial units
+        maxWidth: 200,        
+        metric: false,       // Hide metric units
+        imperial: true       // Show imperial units
     }).addTo(myMap);
 
         // Create an overlayMaps object to hold the neighborhoods layer.
         let overlayMaps = {
-            "Communities": mapOutput,
-            "Liquor Stores": liquorStores,
-            "Grocery Stores": groceryStores
+            "Communities"    : mapOutput,
+            "Liquor Stores"  : liquorStores,
+            "Grocery Stores" : groceryStores
         };
     
         // Add control layers to the map
     L.control.layers(baseMaps, overlayMaps, {collapsed: false}).addTo(myMap);
     
-        // Add mapOutput layer group to the map after data is loaded
+        // Add map output layer groups to the map after data is loaded
     mapOutput.addTo(myMap);
     liquorStores.addTo(myMap);
     groceryStores.addTo(myMap);
@@ -304,18 +294,11 @@ d3.json(urlChicago).then(function(data) {
                 var grades = [15000, 30000, 45000, 60000, 75000, 90000];
                 var labels = ['<strong><u>Income per capita</u></strong>'];
 
-                // Create a color gradient using D3
-                // var colorBar = '<div style="background: linear-gradient(to right, ' +
-                //     grades.map(d => colorScale(d)).join(', ') +
-                //     '); height: 20px;"></div>';
-
-                // labels.push(colorBar);
-
                 // Add labels
                 grades.forEach((grade, i) => {
                     labels.push(
                         '<i style="background:' + colorScale(grade) + '"></i> ' +
-                        (i === grades.length - 1 ? 'Above ' + grade : (i > 0 ? (grades[i - 1] + ' - ' + grade) : '< ' + grade))
+                        (i === grades.length  ? 'Above ' + grade : (i > 0 ? (grades[i - 1] + ' - ' + grade) : '< ' + grade))
                     );
                 });
 
@@ -329,6 +312,3 @@ d3.json(urlChicago).then(function(data) {
             return new L.Control.ColorLegend(opts);
         };
         L.control.colorLegend({ position: 'bottomright' }).addTo(myMap);
-    
-
-    
