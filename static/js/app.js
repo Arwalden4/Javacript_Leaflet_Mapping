@@ -279,7 +279,7 @@ d3.json(urlChicago).then(function(data) {
 
         // Create an overlayMaps object to hold the neighborhoods layer.
         let overlayMaps = {
-            "Comm. Area": mapOutput,
+            "Communities": mapOutput,
             "Liquor Stores": liquorStores,
             "Grocery Stores": groceryStores
         };
