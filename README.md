@@ -6,12 +6,20 @@ Food deserts are a foundational public health issue of inequality afflicting Ame
 
 We want to show exactly how this problem manifests and display with precision the areas which suffer most from the inequality in access to fresh and healthy food options. To this effect, our project's code will use Javascript and HTML to display live maps populated with popups showing the locations of grocery stores, restaurants, and alcoholic vendors to vizualize Chicago's geography accordingly. We will also employ visualizations to execute our project's plan through the use of Python and Pandas dataframes or charts, drawn from our datasets. This project will also store and retrieve our data in a database, such as PostgreSQL, to manage our data in the same server.
 
+Once you navigate to Github pages, you will find the map ready to display. You may find any of the community areas including their name and per capita income by clicking on them. You may interact with the overlays to toggle 
 
 
 
 #### Data Sources:
 <p>Chicago Boundaries Data</p>
 - https://data.cityofchicago.org/resource/y6yq-dbs2.json
+<p>Grocery Stores</p>
+https://data.cityofchicago.org/resource/3e26-zek2.json
+<p>Community Areas Income</p>
+https://data.cityofchicago.org/resource/kn9c-c2s2.json
+<p>Liquor Stores</p>
+
+
 
 #### File locations:
 <p>D3.JS code</p>
