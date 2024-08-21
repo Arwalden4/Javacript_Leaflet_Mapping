@@ -20,4 +20,3 @@ We want to show exactly how this problem manifests and display with precision th
 <p>HTML code</p>
 - https://github.com/Arwalden4/Project3-Group-3/blob/main/index.html
 
-j
